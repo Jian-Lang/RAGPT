@@ -43,25 +43,6 @@ First, download the dataset from this link: https://www.kaggle.com/datasets/gian
 
 Then, place the raw images in folder **dataset/mmimdb/image** and put the csv files in folder **dataset/mmimdb/meta_data**.
 
-After data preparation, the folder dataset has the following structure:
-dataset
-├── food101
-│   ├── image
-│   │   └── xxx.jpg
-│   └── meta_data
-│   │    └── xxx.csv
-│   └──class_idx.json
-├── hatememes
-│   ├── image
-│   │   └── xxx.png
-│   └── meta_data
-│       └── xxx.json
-└── mmimdb
-    ├── image
-    │   └── xxx.jpeg
-    └── meta_data
-    │    └── xxx.json
-    └──split.json
 
 ## Code Running
 ### Dataset Initiation
