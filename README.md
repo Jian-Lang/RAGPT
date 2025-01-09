@@ -57,4 +57,14 @@ sh src/scripts/eval.sh
 ```
 All the parameters have the same meaning as describe in our paper and you can simply config them in **src/config/config.yaml** or in command line.
 
-If you find this repo help you, please give us a star ⭐⭐⭐.
+## Citation
+If you find the code useful for your research, please give us a star ⭐⭐⭐ and consider citing:
+```
+@article{lang2025retrievalaugmented,
+  title={Retrieval-Augmented Dynamic Prompt Tuning for Incomplete Multimodal Learning},
+  author={Jian Lang and Zhangtao Cheng and Ting Zhong and Fan Zhou},
+  journal={arXiv preprint arXiv:2501.01120},
+  year={2025}
+}
+```
+
