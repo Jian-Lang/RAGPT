@@ -1,0 +1,9 @@
+torch
+tqdm
+torchmetrics==0.9.3
+transformers
+hydra-core
+omegaconf
+colorama
+pillow
+pandas
