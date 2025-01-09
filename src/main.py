@@ -12,7 +12,6 @@ warnings.filterwarnings("ignore")
 
 @hydra.main(version_base=None, config_path="config")
 def main(cfg: DictConfig):
-    
     pd.set_option('future.no_silent_downcasting', True)
     seed_init(cfg.seed)
     if cfg.regenerate_missing_table:

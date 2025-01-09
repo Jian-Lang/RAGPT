@@ -157,7 +157,6 @@ class MemoryBankGenerator(torch.nn.Module):
                 self._process_batch(self.df_valid, start_idx, end_idx)
 
 class MCR():
-
     def __init__(self, cfg):
         self.dataset = cfg.data_para.dataset
         self.batch_size = cfg.batch_size

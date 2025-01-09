@@ -14,7 +14,6 @@ warnings.filterwarnings("ignore")
 
 @hydra.main(version_base=None, config_path="config")
 def main(cfg: DictConfig):
-
     pd.set_option('future.no_silent_downcasting', True)
     print('==> Data Initialization start.')
     if cfg.data_para.dataset == 'mmimdb':

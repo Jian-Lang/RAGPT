@@ -43,18 +43,17 @@ First, download the dataset from this link: https://www.kaggle.com/datasets/gian
 
 Then, place the raw images in folder **dataset/mmimdb/image** and put the csv files in folder **dataset/mmimdb/meta_data**.
 
-
 ## Code Running
 ### Dataset Initiation
 Run the following script to init the dataset:
 ```shell
-sh data_init.sh
+sh src/scripts/init_data.sh
 ```
 
 ### Training & Evaluation
 Run the following script to training the model and evaluate the results:
 ```shell
-sh eval.sh
+sh src/scripts/eval.sh
 ```
 All the parameters have the same meaning as describe in our paper and you can simply config them in **src/config/config.yaml** or in command line.
 
