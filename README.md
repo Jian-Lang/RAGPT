@@ -1,4 +1,4 @@
-# RAGPT
+# RAGPT: Retrieval-AuGmented dynamic Prompt Tuning framework
 This repo is the official implementation of _Retrieval-Augmented Dynamic Prompt Tuning for Incomplete Multimodal Learning_ accepted by AAAI 2025. 
 
 Arxiv link: https://arxiv.org/abs/2501.01120
