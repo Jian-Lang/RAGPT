@@ -60,11 +60,12 @@ All the parameters have the same meaning as describe in our paper and you can si
 ## Citation
 If you find the code useful for your research, please give us a star ⭐⭐⭐ and consider citing:
 ```
-@article{lang2025retrievalaugmented,
-  title={Retrieval-Augmented Dynamic Prompt Tuning for Incomplete Multimodal Learning},
-  author={Jian Lang and Zhangtao Cheng and Ting Zhong and Fan Zhou},
-  journal={arXiv preprint arXiv:2501.01120},
-  year={2025}
+@inproceedings{lang2025retrievalaugmented,
+	author = {Lang, Jian and Cheng, Zhangtao and Zhong, Ting and Zhou, Fan},
+	booktitle = {AAAI Conference on Artificial Intelligence (AAAI)},
+	year = {2025},
+	pages = {18035--18043},
+	title = {Retrieval-Augmented Dynamic Prompt Tuning for Incomplete Multimodal Learning},
 }
 ```
 
