@@ -1,7 +1,7 @@
 # RAGPT: Retrieval-AuGmented dynamic Prompt Tuning framework
 This repo is the official implementation of _Retrieval-Augmented Dynamic Prompt Tuning for Incomplete Multimodal Learning_ accepted by AAAI 2025. 
 
-Arxiv link: https://arxiv.org/abs/2501.01120
+Paper Link: https://doi.org/10.1609/aaai.v39i17.33984
 
 ## Abstract
 Multimodal learning with incomplete modality is practical and challenging. Recently, researchers have focused on enhancing the robustness of pre-trained MultiModal Transformers (MMTs) under missing modality conditions by applying learnable prompts. However, these prompt-based methods face several limitations: (1) incomplete modalities provide restricted modal cues for task-specific inference, (2) dummy imputation for missing content causes information loss and introduces noise, and (3) static prompts are instance-agnostic, offering limited knowledge for instances with various missing conditions. To address these issues, we propose **RAGPT**, a novel **R**etrieval-**A**u**G**mented dynamic **P**rompt **T**uning framework. RAGPT comprises three modules: (I) the multi-channel retriever, which identifies similar instances through a withinmodality retrieval strategy, (II) the missing modality generator, which recovers missing information using retrieved contexts, and (III) the context-aware prompter, which captures contextual knowledge from relevant instances and generates dynamic prompts to largely enhance the MMT’s robustness. 
