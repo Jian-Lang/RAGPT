@@ -3,6 +3,12 @@ This repo is the official implementation of _Retrieval-Augmented Dynamic Prompt 
 
 Paper Link: https://doi.org/10.1609/aaai.v39i17.33984
 
+## News and Updates
+
++ 2025.5.15 🔥 The extension of RAGPT, dubbed REDEEM, is accepted by KDD 2025 Round 2. We will release the code for this extension in https://github.com/Jian-Lang/REDEEM.
++ 2025.5.15 💦 We plan to release the source code for Prompt-based baselines in this repo, including MAPs and MSPs, for better follow.
++ 2024.12.10 🔥 Our work, RAGPT, which aims to tackle the incomplete multimodal learning in pre-trained multimodal transformers, is accepted by AAAI 2025.
+
 ## Abstract
 Multimodal learning with incomplete modality is practical and challenging. Recently, researchers have focused on enhancing the robustness of pre-trained MultiModal Transformers (MMTs) under missing modality conditions by applying learnable prompts. However, these prompt-based methods face several limitations: (1) incomplete modalities provide restricted modal cues for task-specific inference, (2) dummy imputation for missing content causes information loss and introduces noise, and (3) static prompts are instance-agnostic, offering limited knowledge for instances with various missing conditions. To address these issues, we propose **RAGPT**, a novel **R**etrieval-**A**u**G**mented dynamic **P**rompt **T**uning framework. RAGPT comprises three modules: (I) the multi-channel retriever, which identifies similar instances through a withinmodality retrieval strategy, (II) the missing modality generator, which recovers missing information using retrieved contexts, and (III) the context-aware prompter, which captures contextual knowledge from relevant instances and generates dynamic prompts to largely enhance the MMT’s robustness. 
 
@@ -65,6 +71,7 @@ If you find the code useful for your research, please give us a star ⭐⭐⭐ a
 	booktitle = {AAAI Conference on Artificial Intelligence (AAAI)},
 	year = {2025},
 	pages = {18035--18043},
+	doi = {10.1609/aaai.v39i17.33984},
 	title = {Retrieval-Augmented Dynamic Prompt Tuning for Incomplete Multimodal Learning},
 }
 ```
