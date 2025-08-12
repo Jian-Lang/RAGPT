@@ -1,0 +1,30 @@
+model_para:
+  model_name: maps
+  is_baseline: true
+  backbone: vilt
+  vilt_weights: src/model/vilt/weights/mlm
+  prompt_len: 16
+  prompt_type: attention
+  prompt_num: 6
+  learnt_p: true
+  dropout_rate: 0.2
+data_para:
+  dataset_name: hatememes
+  missing_type: text
+  missing_rate: 0.7
+  max_text_len: 128
+  max_image_len: 145
+optim_para:
+  name: AdamW
+  lr: 0.001
+  weight_decay: 5.0e-05
+  use_warmup: true
+  warmup_rate: 0.1
+device: cuda:0
+seed: 2024
+epochs: 20
+batch_size: 64
+num_workers: 16
+patience: 10
+save_path: checkpoints
+regenerate_missing_table: true

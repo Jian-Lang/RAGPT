@@ -10,7 +10,7 @@ import random
 from datetime import datetime
 import numpy as np
 import torch
-from model import RAGPT as Model
+from model import ragpt as Model
 from model import ViltModel, ViltImageProcessor
 import importlib
 from PIL import Image
@@ -305,16 +305,16 @@ class MCR():
         self._retrieval_vector_generation()
         self._within_retrieval()
 
-def generate_missing_table(missing_rate, missing_type, dataset, base_file_path='dataset/missing_table', **kargs):
-    
-    assert missing_type in ['Text', 'Image', 'Both'], "Invalid missing type"
+def generate_missing_table(missing_rate, missing_type, dataset_name, base_file_path='dataset/missing_table', **kargs):
+
+    assert missing_type in ['text', 'image', 'both'], "Invalid missing type"
     assert 0 <= missing_rate <= 1, "Invalid missing rate"
-    if missing_type == 'Text' or missing_type == 'Image':
+    if missing_type == 'text' or missing_type == 'image':
         missing_type = 'single'
     else:
         missing_type = 'both'
 
-    file_path = f"{base_file_path}/{missing_type}/{dataset}/missing_table.pkl"
+    file_path = f"{base_file_path}/{missing_type}/{dataset_name}/missing_table.pkl"
     folder = os.path.dirname(file_path)
     
     if not os.path.exists(folder):
@@ -326,10 +326,10 @@ def generate_missing_table(missing_rate, missing_type, dataset, base_file_path='
             df.drop(f"missing_mask_{int(missing_rate* 10)}", axis=1, inplace=True)
         print("File already exists, regenerating new missing column...")
     else:
-        if dataset != 'food101':
-            df = pd.concat([pd.read_pickle(f'dataset/{dataset}/{split}.pkl') for split in ['train', 'valid', 'test']])
+        if dataset_name != 'food101':
+            df = pd.concat([pd.read_pickle(f'dataset/{dataset_name}/{split}.pkl') for split in ['train', 'valid', 'test']])
         else:
-            df = pd.concat([pd.read_pickle(f'dataset/{dataset}/{split}.pkl') for split in ['train', 'test']])
+            df = pd.concat([pd.read_pickle(f'dataset/{dataset_name}/{split}.pkl') for split in ['train', 'test']])
         df = df[['item_id']]
         print("File does not exist, generating new missing table and column...")
 
@@ -362,13 +362,18 @@ def generate_missing_table(missing_rate, missing_type, dataset, base_file_path='
 def resize_image(img, size=(384, 384)):
     return img.resize(size, Image.BILINEAR)
 
-def load_model(**kargs):
+def load_model(is_baseline=False, **kargs):
+    if is_baseline:
+        pretrained_vlit = importlib.import_module(f"baselines.{kargs['model_name']}.vilt").ViltModel.from_pretrained('dandelin/vilt-b32-mlm')
+        model = importlib.import_module(f"baselines.{kargs['model_name']}.model.{kargs['model_name']}")
+        model = getattr(model, kargs['model_name'])
+        return model(vilt=pretrained_vlit, **kargs)
     pretrained_vlit = ViltModel.from_pretrained('dandelin/vilt-b32-mlm')
     model = Model(vilt=pretrained_vlit, **kargs)
     return model
 
-def get_dataset(dataset_name: str, **kargs):
-    module = importlib.import_module(f"dataloader.{dataset_name}_dataset")
+def get_dataset(dataset_name: str, model_name: str, **kargs):
+    module = importlib.import_module(f"dataloader.{model_name}_{dataset_name}_dataset")
     if dataset_name == "hatememes":
         dataset_class = getattr(module, 'HatememesDataset')
     elif dataset_name == "mmimdb":
@@ -393,19 +398,16 @@ def get_evaluator(task_id, device):
     return evaluator
 
 class Collator:
-    def __init__(self, max_text_len, **kargs):
+    def __init__(self, max_text_len, is_baseline=False, **kargs):
         self.image_processor = ViltImageProcessor.from_pretrained('dandelin/vilt-b32-mlm')
         self.tokenizer = BertTokenizer.from_pretrained('dandelin/vilt-b32-mlm', do_lower_case=True)
         self.max_text_len = max_text_len
+        self.is_baseline = is_baseline
 
     def __call__(self, batch):
         text = [item['text'] for item in batch]
         image = [item['image'] for item in batch]
         label = [item['label'] for item in batch]
-        r_t_list = [item['r_t_list'] for item in batch]
-        r_i_list = [item['r_i_list'] for item in batch]
-        missing_mask = [item['missing_mask'] for item in batch]
-        r_l_list = [item['r_l_list'] for item in batch]
         text_encoding = self.tokenizer(
             text,
             padding="max_length",
@@ -424,6 +426,21 @@ class Collator:
         token_type_ids = torch.tensor(token_type_ids,dtype=torch.int64)
         attention_mask = torch.tensor(attention_mask,dtype=torch.int64)
         label = torch.tensor(label,dtype=torch.float)
+        missing_mask = [item['missing_mask'] for item in batch]
+
+        if self.is_baseline:
+            return {
+                "input_ids": torch.tensor(input_ids,dtype=torch.int64),
+                "pixel_values": pixel_values,
+                "pixel_mask": pixel_mask,
+                "token_type_ids": token_type_ids,
+                "attention_mask": attention_mask,
+                "label": label,
+                "missing_mask": missing_mask
+            }
+        r_t_list = [item['r_t_list'] for item in batch]
+        r_i_list = [item['r_i_list'] for item in batch]
+        r_l_list = [item['r_l_list'] for item in batch]
         r_l_list = torch.tensor(r_l_list,dtype=torch.long)
         r_t_list = torch.tensor(r_t_list,dtype=torch.float)
         r_i_list = torch.tensor(r_i_list,dtype=torch.float)
@@ -482,9 +499,9 @@ def seed_init(seed):
 def print_init_msg(logger, cfg):
     logger.info('Random Seed: ' + f"{cfg.seed} ")
     logger.info('Device: ' + f"{cfg.device} ")
-    logger.info('Model: ' + f"{cfg.model_para.model} ")
+    logger.info('Model: ' + f"{cfg.model_para.model_name} ")
     logger.info('Backbone: ' + f"{cfg.model_para.backbone}")
-    logger.info("Dataset: " + f"{cfg.data_para.dataset}")
+    logger.info("Dataset: " + f"{cfg.data_para.dataset_name}")
     logger.info("Optimizer: " + f"{cfg.optim_para.name}(lr = {cfg.optim_para.lr})")
     logger.info("Weight Decay: " + f"{cfg.optim_para.weight_decay}")
     logger.info("Use Warmup: " + f"{cfg.optim_para.use_warmup}")
@@ -495,14 +512,12 @@ def print_init_msg(logger, cfg):
     logger.info("Number of Workers: " + f"{cfg.num_workers}")
     logger.info("Missing Rate: " + f"{cfg.data_para.missing_rate}")
     logger.info("Missing Type: " + f"{cfg.data_para.missing_type}")
-    logger.info("K: " + f"{cfg.data_para.k}")
-    logger.info("Prompt Length: " + f"{cfg.model_para.prompt_length}")
-    logger.info("Prompt Position: " + f"{cfg.model_para.prompt_position}")
+    logger.info("Prompt Length: " + f"{cfg.model_para.prompt_len}")
     logger.info("Training Starts!")
 
 def make_saving_folder_and_logger(cfg):
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    folder_name = f"train_{cfg.model_para.model}_{cfg.data_para.dataset}_{cfg.data_para.missing_type}_{cfg.data_para.missing_rate}_{timestamp}"
+    folder_name = f"train_{cfg.model_para.model_name}_{cfg.data_para.dataset_name}_{cfg.data_para.missing_type}_{cfg.data_para.missing_rate}_{timestamp}"
     father_folder_name = cfg.save_path
 
     if not os.path.exists(father_folder_name):
@@ -544,18 +559,20 @@ def get_optim(max_steps, model, lr, weight_decay, warmup_rate=0.1, use_warmup=Fa
     return optimizer, scheduler
 
 
-def compute_loss(output, label, task_id):
+def compute_loss(label, task_id, **args):
+    assert task_id in ["mmimdb", "hatememes", "food101"], "Invalid task_id"
+    output = args['output']
+    ortho_loss = args['ortho_loss'] if 'ortho_loss' in args else 0
+    loss = 0
     if task_id == "mmimdb":
         loss = F.binary_cross_entropy_with_logits(output, label)
-        return loss
     elif task_id == "hatememes":
         label = label.long()
         loss = F.cross_entropy(output, label)
-        return loss
     elif task_id == "food101":
         label = label.long()
         loss = F.cross_entropy(output, label)
-        return loss
+    return loss + ortho_loss
 
 
 class HatememesMetric:
@@ -616,3 +633,6 @@ class Food101Metric:
         return {
             "accuracy": accuracy,
         }
+
+if __name__ == "__main__":
+    load_model(is_baseline=True, model_name='maps', dataset_name='mmimdb')

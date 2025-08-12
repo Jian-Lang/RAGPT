@@ -1,0 +1,39 @@
+# one modality missing: 0 missing, 1 not missing
+# two modality missing: 0 text missing, 1 image missing, 2 not missing
+
+model_para:
+  model_name: "msps"
+  is_baseline: True
+  backbone: "vilt"
+  vilt_weights: "src/model/vilt/weights/mlm"
+  prompt_len: 16
+  prompt_type: "attention"
+  prompt_num: 6
+  learnt_p: True
+  dropout_rate: 0.2
+
+
+data_para:
+  dataset_name: "hatememes" # hatememes, mmimdb, food101
+  missing_type: "both" # "both" "text" "image"
+  missing_rate: 0.7
+  max_text_len: 128
+  max_image_len: 145
+
+
+optim_para:
+  name: "AdamW"
+  lr: 1e-3
+  weight_decay: 2e-2 #2e-3 has powerful results
+  use_warmup: True
+  warmup_rate: 0.1
+
+
+device: "cuda:0"
+seed: 2024
+epochs: 20
+batch_size: 64
+num_workers: 16
+patience: 10
+save_path: "checkpoints"
+regenerate_missing_table: True

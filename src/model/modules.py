@@ -24,13 +24,13 @@ class MMG(nn.Module):
 
 
 class CAP(nn.Module):
-    def __init__(self, prompt_length,dim=768):
+    def __init__(self, prompt_len,dim=768):
         super(CAP, self).__init__()
         self.dim = dim
         self.q_proj = nn.Linear(dim, dim)
         self.k_proj = nn.Linear(dim, dim)
         self.v_proj = nn.Linear(dim, dim)
-        self.pooling = nn.AdaptiveAvgPool2d((prompt_length, dim))
+        self.pooling = nn.AdaptiveAvgPool2d((prompt_len, dim))
 
     def forward(self, V, T, r_i, r_t):
         V_to_V = self.attention(V, r_i)

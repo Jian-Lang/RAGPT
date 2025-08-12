@@ -1,0 +1,5 @@
+- optim_para.weight_decay=5e-5
+- data_para.dataset_name=hatememes
+- data_para.missing_type=text
+- data_para.missing_rate=0.7
+- device=cuda:0

@@ -16,36 +16,36 @@ def init_weights(module):
         module.bias.data.zero_()
 
 
-class RAGPT(torch.nn.Module):
+class ragpt(torch.nn.Module):
     def __init__(self,
                  vilt: ViltModel,
-                 task_id: str,
+                 dataset_name: str,
                  max_text_len: int,
                  max_image_len: int,
                  missing_type: str,
                  device: str,
-                 prompt_position: int,
-                 prompt_length: int,
+                 prompt_pos: int,
+                 prompt_len: int,
                  dropout_rate: float,
                  hs=768,
                  **kargs):
-        super(RAGPT, self).__init__()
+        super(ragpt, self).__init__()
         self.device = device
         self.max_text_len = max_text_len
         self.missing_type = missing_type
-        self.task_id = task_id
+        self.dataset_name = dataset_name
         self.embedding_layer = vilt.embeddings
         self.encoder_layer = vilt.encoder.layer
         self.layernorm = vilt.layernorm
-        self.prompt_length = prompt_length
-        self.prompt_position = prompt_position
+        self.prompt_len = prompt_len
+        self.prompt_pos = prompt_pos
         self.hs = hs
 
-        if task_id == "hatememes":
+        if dataset_name == "hatememes":
             cls_num = 2
-        elif task_id == "food101":
+        elif dataset_name == "food101":
             cls_num = 101
-        elif task_id == "mmimdb":
+        elif dataset_name == "mmimdb":
             cls_num = 23
 
         # freeze the pretrained multi-modal transformer
@@ -64,7 +64,7 @@ class RAGPT(torch.nn.Module):
             self.MMG_i = MMG(n = max_image_len, d=hs,dropout_rate=dropout_rate)
 
         # define the dynamic prompt
-        self.dynamic_prompt = CAP(prompt_length=prompt_length)
+        self.dynamic_prompt = CAP(prompt_len=prompt_len)
 
         # define the classifier
         self.label_enhanced = nn.Parameter(torch.randn(cls_num, hs))
@@ -132,14 +132,14 @@ class RAGPT(torch.nn.Module):
         t_prompt = torch.mean(t_prompt, dim=1)
         i_prompt = torch.mean(i_prompt, dim=1)
 
-        if self.task_id == "hatememes" or self.task_id == "food101":
+        if self.dataset_name == "hatememes" or self.dataset_name == "food101":
             label_emb = self.label_enhanced[r_l_list]
             label_cls = self.label_enhanced
             label_emb = torch.mean(label_emb, dim=1)
             label_emb = label_emb.view(-1, 1, self.hs)
 
         # mmimdb is a multi-label classification task, need some special treatment
-        elif self.task_id == "mmimdb":
+        elif self.dataset_name == "mmimdb":
             label_tmp = self.label_enhanced.repeat(r_l_list.shape[0], 1, 1)
             label_cls = self.label_enhanced
             label_emb = torch.matmul(r_l_list.float(), label_tmp)
@@ -148,10 +148,10 @@ class RAGPT(torch.nn.Module):
 
         output = torch.cat([text_emb, image_emb], dim=1)
         for i, layer_module in enumerate(self.encoder_layer):
-            if i == self.prompt_position:
+            if i == self.prompt_pos:
                 output = torch.cat([label_emb,t_prompt.unsqueeze(1),i_prompt.unsqueeze(1),output], dim=1)
                 N = embedding.shape[0]
-                attention_mask = torch.cat([torch.ones(N,1+self.prompt_length*2).to(self.device), attention_mask], dim=1)
+                attention_mask = torch.cat([torch.ones(N,1+self.prompt_len*2).to(self.device), attention_mask], dim=1)
                 layer_outputs = layer_module(output,
                                              attention_mask=attention_mask
                                             )
@@ -170,4 +170,6 @@ class RAGPT(torch.nn.Module):
         output = output.unsqueeze(1)
         output = torch.matmul(output, label_cls)
         output = output.squeeze(1)
-        return output
+        return {
+            "output": output
+        }

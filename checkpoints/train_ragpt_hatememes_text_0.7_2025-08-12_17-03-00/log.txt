@@ -1,0 +1,18 @@
+2025-08-12 17:03:04,382 - INFO - Random Seed: 2024 
+2025-08-12 17:03:04,382 - INFO - Device: cuda:0 
+2025-08-12 17:03:04,382 - INFO - Model: ragpt 
+2025-08-12 17:03:04,382 - INFO - Backbone: vilt
+2025-08-12 17:03:04,382 - INFO - Dataset: hatememes
+2025-08-12 17:03:04,382 - INFO - Optimizer: AdamW(lr = 0.001)
+2025-08-12 17:03:04,382 - INFO - Weight Decay: 5e-05
+2025-08-12 17:03:04,382 - INFO - Use Warmup: True
+2025-08-12 17:03:04,382 - INFO - Warmup Rate: 10%
+2025-08-12 17:03:04,382 - INFO - Total Epoch: 20 Turns
+2025-08-12 17:03:04,382 - INFO - Early Stop: 10 Turns
+2025-08-12 17:03:04,382 - INFO - Batch Size: 64
+2025-08-12 17:03:04,382 - INFO - Number of Workers: 16
+2025-08-12 17:03:04,382 - INFO - Missing Rate: 0.7
+2025-08-12 17:03:04,382 - INFO - Missing Type: text
+2025-08-12 17:03:04,382 - INFO - Prompt Length: 1
+2025-08-12 17:03:04,382 - INFO - Training Starts!
+2025-08-12 17:03:04,382 - INFO - Current Epoch: 1

@@ -25,36 +25,32 @@ class Trainer():
                  cfg: DictConfig):
         self.cfg = cfg
         self.epochs = cfg.epochs
-        self.dataset = cfg.data_para.dataset
+        self.dataset_name = cfg.data_para.dataset_name
         self.device = cfg.device
-        self.missing_type = cfg.data_para.missing_type
-        self.task = cfg.data_para.dataset
+        self.task = cfg.data_para.dataset_name
         self.father_folder_name, self.folder_name, self.logger = make_saving_folder_and_logger(cfg)
         self.model = load_model(
-            missing_type=cfg.data_para.missing_type, 
-            task_id = self.task, 
-            device = cfg.device, 
-            max_text_len = cfg.data_para.max_text_len,
-            max_image_len = cfg.data_para.max_image_len,
-            **dict(cfg.model_para))
+            device = self.device, 
+            **cfg.data_para,
+            **cfg.model_para)
         self.model.to(self.device)
-        train_dataset = get_dataset(dataset_name=self.dataset, split='train', **cfg.data_para)
-        test_dataset = get_dataset(dataset_name=self.dataset, split='test', **cfg.data_para)
-        collator = Collator(max_text_len=cfg.data_para.max_text_len)
+        train_dataset = get_dataset(split='train', **cfg.data_para, **cfg.model_para)
+        test_dataset = get_dataset(split='test', **cfg.data_para, **cfg.model_para)
+        collator = Collator(**cfg.data_para, **cfg.model_para)
         self.train_data_loader = DataLoader(dataset=train_dataset, batch_size=cfg.batch_size, collate_fn=collator, num_workers=cfg.num_workers, shuffle=True)
         self.test_data_loader = DataLoader(dataset=test_dataset, batch_size=cfg.batch_size, collate_fn=collator, num_workers=cfg.num_workers)
-        if self.dataset != 'food101':
-            valid_dataset = get_dataset(dataset_name=self.dataset, split='valid', **cfg.data_para)
+        if self.dataset_name != 'food101':
+            valid_dataset = get_dataset(split='valid', **cfg.data_para, **cfg.model_para)
             self.valid_data_loader = DataLoader(dataset=valid_dataset, batch_size=cfg.batch_size, collate_fn=collator, num_workers=cfg.num_workers, shuffle=True)
         self.optimizer, self.scheduler = get_optim(max_steps=len(self.train_data_loader) * self.epochs, model=self.model, **cfg.optim_para)
-        self.evaluator = get_evaluator(self.dataset, cfg.device)
+        self.evaluator = get_evaluator(self.dataset_name, cfg.device)
         self.early_stopping = EarlyStopping(patience=cfg.patience, path=os.path.join(self.father_folder_name, self.folder_name, 'best_model.pth'))
     def run(self):
         print_init_msg(self.logger, self.cfg)
         for epoch in range(self.epochs):
             self.logger.info(f'Current Epoch: {epoch + 1}')
             self._train()
-            if self.dataset != 'food101':
+            if self.dataset_name != 'food101':
                 self._valid(split='valid', use_early_stopping=True)
                 self._valid('test')
             else:
@@ -79,7 +75,7 @@ class Trainer():
             inputs = {key: val.to(self.device) if isinstance(val, torch.Tensor) else val for key, val in batch.items()}
             labels = inputs.pop('label')
             preds = self.model(**inputs)
-            loss = compute_loss(preds, labels, self.dataset)
+            loss = compute_loss(labels, self.dataset_name, **preds)
             loss_list.append(loss.item())
             loss.backward()
             self.optimizer.step()
@@ -110,10 +106,10 @@ class Trainer():
                 inputs = {key: val.to(self.device) if isinstance(val, torch.Tensor) else val for key, val in batch.items()}
                 labels = inputs.pop('label')
                 preds = self.model(**inputs)
-                loss = compute_loss(preds, labels, self.dataset)
+                loss = compute_loss(labels, self.dataset_name, **preds)
                 loss_list.append(loss.item())
-                self.evaluator.update(preds=preds, labels=labels)
-    
+                self.evaluator.update(preds=preds['output'], labels=labels)
+
         metrics = self.evaluator.compute()
         if not final_turn:
             self.logger.info(f"{f_color}{split}: Loss: {np.mean(loss_list)}{Style.RESET_ALL}")

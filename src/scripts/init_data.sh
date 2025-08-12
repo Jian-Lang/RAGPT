@@ -1,1 +1,1 @@
-python src/init_data.py --config-name=config data_para.dataset=hatememes
+python src/init_data.py --config-name=config data_para.dataset_name=hatememes

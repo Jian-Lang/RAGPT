@@ -2,17 +2,17 @@
 # two modality missing: 0 text missing, 1 image missing, 2 not missing
 
 model_para:
-  model: "RAGPT"
+  model_name: "ragpt"
   backbone: "vilt"
   vilt_weights: "src/model/vilt/weights/mlm"
-  prompt_position: 0
-  prompt_length: 1
+  prompt_pos: 0
+  prompt_len: 1
   dropout_rate: 0.2
 
 
 data_para:
-  dataset: "mmimdb" # hatememes, mmimdb, food101
-  missing_type: "Both" # "Both" "Text" "Image"
+  dataset_name: "mmimdb" # hatememes, mmimdb, food101
+  missing_type: "both" # "both" "text" "image"
   missing_rate: 0.7
   max_text_len: 128
   max_image_len: 145

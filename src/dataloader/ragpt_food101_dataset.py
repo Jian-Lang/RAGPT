@@ -1,19 +1,18 @@
-from PIL import  Image
 import numpy as np
 import torch.utils.data
-import os
 import pandas as pd
+import os
+
 from PIL import Image
 
-
-class MMIMDbDataset(torch.utils.data.Dataset):
+class Food101Dataset(torch.utils.data.Dataset):
     def __init__(self, split, max_text_len,  missing_type, missing_rate, k, **kargs):
         super().__init__()
-        dataframe = pd.read_pickle(os.path.join('dataset/mmimdb', f'{split}.pkl'))
-        if missing_type == "Image" or missing_type == "Text":
-            missing_table = pd.read_pickle('dataset/missing_table/single/mmimdb/missing_table.pkl')
-        elif missing_type == "Both":
-            missing_table = pd.read_pickle('dataset/missing_table/both/mmimdb/missing_table.pkl')
+        dataframe = pd.read_pickle(os.path.join('dataset/food101', f'{split}.pkl'))
+        if missing_type == "image" or missing_type == "text":
+            missing_table = pd.read_pickle('dataset/missing_table/single/food101/missing_table.pkl')
+        elif missing_type == "both":
+            missing_table = pd.read_pickle('dataset/missing_table/both/food101/missing_table.pkl')
         dataframe = pd.merge(dataframe, missing_table, on='item_id')
         self.k = k
         self.missing_type = missing_type
@@ -30,74 +29,74 @@ class MMIMDbDataset(torch.utils.data.Dataset):
     def __getitem__(self, index):
         k = self.k
         text = self.text_list[index]
-        image = Image.open(fr'dataset/mmimdb/image/{self.id_list[index]}.jpeg').convert("RGB")
+        image = Image.open(fr'dataset/food101/image/{self.id_list[index]}.jpg').convert("RGB")
         r_t_list = []
         r_i_list = []
 
-        if self.missing_type == "Text" and self.missing_mask_list[index] == 0:
+        if self.missing_type == "text" and self.missing_mask_list[index] == 0:
             text = "I love deep learning" * 1024
             i2i_list = self.i2i_list[index]
 
             for i in i2i_list[:k]:
-                r_i = np.load(fr'dataset/memory_bank/mmimdb/image/{i}.npy')
+                r_i = np.load(fr'dataset/memory_bank/food101/image/{i}.npy')
                 r_i_list.append(r_i.tolist())
-                r_t = np.load(fr'dataset/memory_bank/mmimdb/text/{i}.npy')
+                r_t = np.load(fr'dataset/memory_bank/food101/text/{i}.npy')
                 r_t_list.append(r_t.tolist())
 
             r_l_list = self.i2i_r_l_list_list[index]
 
-        elif self.missing_type == "Image" and self.missing_mask_list[index] == 0:
+        elif self.missing_type == "image" and self.missing_mask_list[index] == 0:
             t2t_list = self.t2t_list[index]
 
             for i in t2t_list[:k]:
-                r_t = np.load(fr'dataset/memory_bank/mmimdb/text/{i}.npy')
+                r_t = np.load(fr'dataset/memory_bank/food101/text/{i}.npy')
                 r_t_list.append(r_t.tolist())
-                r_i = np.load(fr'dataset/memory_bank/mmimdb/image/{i}.npy')
+                r_i = np.load(fr'dataset/memory_bank/food101/image/{i}.npy')
                 r_i_list.append(r_i.tolist())
             r_l_list = self.t2t_r_l_list_list[index]
             
-        elif self.missing_type == "Text" or self.missing_type == "Image" and self.missing_mask_list[index] == 1:
+        elif self.missing_type == "text" or self.missing_type == "image" and self.missing_mask_list[index] == 1:
             i2i_list = self.i2i_list[index]
             t2t_list = self.t2t_list[index]
 
             for i in i2i_list[:k]:
-                r_i = np.load(fr'dataset/memory_bank/mmimdb/image/{i}.npy')
+                r_i = np.load(fr'dataset/memory_bank/food101/image/{i}.npy')
                 r_i_list.append(r_i.tolist())
             
             for i in t2t_list[:k]:
-                r_t = np.load(fr'dataset/memory_bank/mmimdb/text/{i}.npy')
+                r_t = np.load(fr'dataset/memory_bank/food101/text/{i}.npy')
                 r_t_list.append(r_t.tolist())
             r_l_list = self.i2i_r_l_list_list[index]
         
-        elif self.missing_type == "Both" and self.missing_mask_list[index] == 0:
+        elif self.missing_type == "both" and self.missing_mask_list[index] == 0:
             text = "I love deep learning" * 1024
             i2i_list = self.i2i_list[index]
             for i in i2i_list[:k]:
-                r_i = np.load(fr'dataset/memory_bank/mmimdb/image/{i}.npy')
+                r_i = np.load(fr'dataset/memory_bank/food101/image/{i}.npy')
                 r_i_list.append(r_i.tolist())
-                r_t = np.load(fr'dataset/memory_bank/mmimdb/text/{i}.npy')
+                r_t = np.load(fr'dataset/memory_bank/food101/text/{i}.npy')
                 r_t_list.append(r_t.tolist())
             r_l_list = self.i2i_r_l_list_list[index]
         
-        elif self.missing_type == "Both" and self.missing_mask_list[index] == 1:
+        elif self.missing_type == "both" and self.missing_mask_list[index] == 1:
             t2t_list = self.t2t_list[index]
             for i in t2t_list[:k]:
-                r_t = np.load(fr'dataset/memory_bank/mmimdb/text/{i}.npy')
+                r_t = np.load(fr'dataset/memory_bank/food101/text/{i}.npy')
                 r_t_list.append(r_t.tolist())
-                r_i = np.load(fr'dataset/memory_bank/mmimdb/image/{i}.npy')
+                r_i = np.load(fr'dataset/memory_bank/food101/image/{i}.npy')
                 r_i_list.append(r_i.tolist())
             r_l_list = self.t2t_r_l_list_list[index]
         
-        elif self.missing_type == "Both" and self.missing_mask_list[index] == 2:
+        elif self.missing_type == "both" and self.missing_mask_list[index] == 2:
             i2i_list = self.i2i_list[index]
             t2t_list = self.t2t_list[index]
 
             for i in i2i_list[:k]:
-                r_i = np.load(fr'dataset/memory_bank/mmimdb/image/{i}.npy')
+                r_i = np.load(fr'dataset/memory_bank/food101/image/{i}.npy')
                 r_i_list.append(r_i.tolist())
             
             for i in t2t_list[:k]:
-                r_t = np.load(fr'dataset/memory_bank/mmimdb/text/{i}.npy')
+                r_t = np.load(fr'dataset/memory_bank/food101/text/{i}.npy')
                 r_t_list.append(r_t.tolist())
             
             r_l_list = self.i2i_r_l_list_list[index]

@@ -10,8 +10,8 @@ Paper Link: https://arxiv.org/pdf/2501.01120
 
 ## News and Updates
 
++ 2025.8.12 💦 We release the source code for Prompt-based baselines in this repo, including MAPs and MSPs, for better follow.
 + 2025.5.15 🔥 The extension of RAGPT, dubbed REDEEM, is accepted by KDD 2025 Round 2. We will release the code for this extension in https://github.com/Jian-Lang/REDEEM.
-+ 2025.5.15 💦 We plan to release the source code for Prompt-based baselines in this repo, including MAPs and MSPs, for better follow.
 + 2024.12.10 🔥 Our work, RAGPT, which aims to tackle the incomplete multimodal learning in pre-trained multimodal transformers, is accepted by AAAI 2025.
 
 ## Abstract
@@ -84,13 +84,20 @@ sh src/scripts/init_data.sh
 
 ### Training & Evaluation
 
-Run the following script to training the model and evaluate the results:
+Run the following script to training our model and evaluate the results:
 
 ```shell
 sh src/scripts/eval.sh
 ```
 
 All the parameters have the same meaning as describe in our paper and you can simply config them in **src/config/config.yaml** or in command line.
+
+
+Run the following script to training baseline model and evaluate the results:
+
+```shell
+sh src/scripts/eval_baseline.sh
+```
 
 ## Citation
 

@@ -1,4 +1,3 @@
-from PIL import  Image
 import numpy as np
 import torch.utils.data
 import os
@@ -9,9 +8,9 @@ class HatememesDataset(torch.utils.data.Dataset):
     def __init__(self, split, max_text_len,  missing_type, missing_rate, k, **kargs):
         super().__init__()
         dataframe = pd.read_pickle(os.path.join('dataset/hatememes', f'{split}.pkl'))
-        if missing_type == "Image" or missing_type == "Text":
+        if missing_type == "image" or missing_type == "text":
             missing_table = pd.read_pickle('dataset/missing_table/single/hatememes/missing_table.pkl')
-        elif missing_type == "Both":
+        elif missing_type == "both":
             missing_table = pd.read_pickle('dataset/missing_table/both/hatememes/missing_table.pkl')
         dataframe = pd.merge(dataframe, missing_table, on='item_id')
         self.k = k
@@ -33,7 +32,7 @@ class HatememesDataset(torch.utils.data.Dataset):
         r_t_list = []
         r_i_list = []
 
-        if self.missing_type == "Text" and self.missing_mask_list[index] == 0:
+        if self.missing_type == "text" and self.missing_mask_list[index] == 0:
             text = "I love deep learning" * 1024
             i2i_list = self.i2i_list[index]
 
@@ -45,7 +44,7 @@ class HatememesDataset(torch.utils.data.Dataset):
 
             r_l_list = self.i2i_r_l_list_list[index]
 
-        elif self.missing_type == "Image" and self.missing_mask_list[index] == 0:
+        elif self.missing_type == "image" and self.missing_mask_list[index] == 0:
             t2t_list = self.t2t_list[index]
 
             for i in t2t_list[:k]:
@@ -55,7 +54,7 @@ class HatememesDataset(torch.utils.data.Dataset):
                 r_i_list.append(r_i.tolist())
             r_l_list = self.t2t_r_l_list_list[index]
             
-        elif self.missing_type == "Text" or self.missing_type == "Image" and self.missing_mask_list[index] == 1:
+        elif self.missing_type == "text" or self.missing_type == "image" and self.missing_mask_list[index] == 1:
             i2i_list = self.i2i_list[index]
             t2t_list = self.t2t_list[index]
 
@@ -68,7 +67,7 @@ class HatememesDataset(torch.utils.data.Dataset):
                 r_t_list.append(r_t.tolist())
             r_l_list = self.i2i_r_l_list_list[index]
         
-        elif self.missing_type == "Both" and self.missing_mask_list[index] == 0:
+        elif self.missing_type == "both" and self.missing_mask_list[index] == 0:
             text = "I love deep learning" * 1024
             i2i_list = self.i2i_list[index]
             for i in i2i_list[:k]:
@@ -78,7 +77,7 @@ class HatememesDataset(torch.utils.data.Dataset):
                 r_t_list.append(r_t.tolist())
             r_l_list = self.i2i_r_l_list_list[index]
         
-        elif self.missing_type == "Both" and self.missing_mask_list[index] == 1:
+        elif self.missing_type == "both" and self.missing_mask_list[index] == 1:
             t2t_list = self.t2t_list[index]
             for i in t2t_list[:k]:
                 r_t = np.load(fr'dataset/memory_bank/hatememes/text/{i}.npy')
@@ -87,7 +86,7 @@ class HatememesDataset(torch.utils.data.Dataset):
                 r_i_list.append(r_i.tolist())
             r_l_list = self.t2t_r_l_list_list[index]
         
-        elif self.missing_type == "Both" and self.missing_mask_list[index] == 2:
+        elif self.missing_type == "both" and self.missing_mask_list[index] == 2:
             i2i_list = self.i2i_list[index]
             t2t_list = self.t2t_list[index]
 
