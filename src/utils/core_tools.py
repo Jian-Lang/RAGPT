@@ -31,7 +31,7 @@ def init_data_hatememes():
         data.to_pickle(f'dataset/hatememes/{split}.pkl')
 
 def init_data_mmimdb():
-    data_split = json.load(open('dataset/mmimdb/split.json'))
+    data_split = json.load(open('dataset/mmimdb/meta_data/split.json'))
     genres = ['Drama', 'Comedy', 'Romance', 'Thriller', 'Crime', 'Action', 'Adventure', 'Horror'
         , 'Documentary', 'Mystery', 'Sci-Fi', 'Fantasy', 'Family', 'Biography', 'War', 'History', 'Music',
         'Animation', 'Musical', 'Western', 'Sport', 'Short', 'Film-Noir'] 
@@ -54,7 +54,7 @@ def init_data_mmimdb():
         data.to_pickle(f'dataset/mmimdb/{split if split != "dev" else "valid"}.pkl')
 
 def init_data_food101():
-    class_idx = json.load(open('dataset/food101/class_idx.json'))
+    class_idx = json.load(open('dataset/food101/meta_data/class_idx.json'))
 
     for split in tqdm(['train', 'test']):
         data = pd.read_csv(f'dataset/food101/meta_data/{split}_titles.csv')

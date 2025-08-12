@@ -70,7 +70,7 @@ Next, replace the **test.json** in metadata with **test_seen.json** downloaded f
 
 First, download the dataset from this link: https://www.kaggle.com/datasets/gianmarco96/upmcfood101
 
-Then, place the raw images in folder **dataset/mmimdb/image** and put the csv files in folder **dataset/mmimdb/meta_data**.
+Then, place the raw images in folder **dataset/food101/image** and put the csv files in folder **dataset/food101/meta_data**.
 
 ## Code Running
 
