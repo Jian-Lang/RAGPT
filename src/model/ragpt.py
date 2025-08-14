@@ -109,12 +109,12 @@ class ragpt(torch.nn.Module):
         if self.missing_type == "Text":
             recovered_t = self.MMG(r_t_list)
             missing_mask_t = missing_mask.view(-1, 1, 1).expand(-1,self.max_text_len, self.hs)
-            text_emb = text_emb * missing_mask_t + recovered_t * (~missing_mask_t)
+            text_emb = text_emb * missing_mask_t + recovered_t * (1 - missing_mask_t)
         
         elif self.missing_type == "Image":
             recovered_i = self.MMG(r_i_list)
             missing_mask_i = missing_mask.view(-1, 1, 1).expand(-1, 145, self.hs)
-            image_emb = image_emb * missing_mask_i + recovered_i * (~missing_mask_i)
+            image_emb = image_emb * missing_mask_i + recovered_i * (1 - missing_mask_i)
 
         elif self.missing_type == "Both":
             recovered_t = self.MMG_t(r_t_list)
@@ -125,8 +125,8 @@ class ragpt(torch.nn.Module):
             i_missing_mask = torch.tensor(i_missing_mask).to(self.device)
             missing_mask_t = t_missing_mask.view(-1, 1, 1).expand(-1,self.max_text_len, self.hs)
             missing_mask_i = i_missing_mask.view(-1, 1, 1).expand(-1, 145, self.hs)
-            text_emb = text_emb * missing_mask_t + recovered_t * (~missing_mask_t)
-            image_emb = image_emb * missing_mask_i + recovered_i * (~missing_mask_i)
+            text_emb = text_emb * missing_mask_t + recovered_t * (1 - missing_mask_t)
+            image_emb = image_emb * missing_mask_i + recovered_i * (1 - missing_mask_i)
         
         t_prompt,i_prompt = self.dynamic_prompt(r_i=r_i_list, r_t=r_t_list, T=text_emb, V=image_emb)
         t_prompt = torch.mean(t_prompt, dim=1)
