@@ -71,7 +71,7 @@ class MemoryBankGenerator(torch.nn.Module):
         self._freeze()
         self.tokenizer = BertTokenizer.from_pretrained('dandelin/vilt-b32-mlm', do_lower_case=True)
         self.image_processor = ViltImageProcessor.from_pretrained('dandelin/vilt-b32-mlm')
-        self.dataset = cfg.data_para.dataset
+        self.dataset = cfg.data_para.dataset_name
         self.max_text_len = cfg.data_para.max_text_len
         self.max_image_len = cfg.data_para.max_image_len
         self.df_train = pd.read_pickle(rf'dataset/{self.dataset}/train.pkl')
@@ -158,7 +158,7 @@ class MemoryBankGenerator(torch.nn.Module):
 
 class MCR():
     def __init__(self, cfg):
-        self.dataset = cfg.data_para.dataset
+        self.dataset = cfg.data_para.dataset_name
         self.batch_size = cfg.batch_size
         self.top_k = 20
         self.img_path = os.path.join('dataset', self.dataset, 'image')
