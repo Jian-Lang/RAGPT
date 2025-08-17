@@ -72,6 +72,8 @@ First, download the dataset from this link: https://www.kaggle.com/datasets/gian
 
 Then, place the raw images in folder **dataset/food101/image** and put the csv files in folder **dataset/food101/meta_data**.
 
+Note: The image folder follows the structure dataset/xxx/image/xxx.jpg|png|jpeg
+
 ## Code Running
 
 ### Dataset Initiation
