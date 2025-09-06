@@ -108,7 +108,7 @@ class MMIMDbDataset(torch.utils.data.Dataset):
             "r_t_list": r_t_list,
             "r_i_list": r_i_list,
             "missing_mask": self.missing_mask_list[index],
-            "r_l_list": r_l_list
+            "r_l_list": r_l_list[:k]
         }
     def __len__(self):
         return len(self.text_list)
