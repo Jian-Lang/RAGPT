@@ -1,15 +1,7 @@
-# -*- coding: utf-8 -*-
-# @Time    : 2024/7/14 下午3:16
-# @Author  : jian lang
-# @File    : MAP.py
-# @Description:
-
 import torch
-from PIL import Image
 from torch import nn
-from transformers import BertTokenizer
 
-from baselines.msps.vilt import ViltModel, ViltImageProcessor
+from baselines.msps.vilt import ViltModel
 
 
 def init_weights(module):
@@ -169,52 +161,3 @@ class msps(torch.nn.Module):
             "output": output,
             "ortho_loss": ortho_loss
         }
-    
-    
-
-if __name__ == "__main__":
-    text = ['This is a test sentence.', 'This is another test sentence.']
-    tokenizer = BertTokenizer.from_pretrained(r'vilt/weights/mlm', do_lower_case=True)
-    text_encoding = tokenizer(
-        text,
-        padding="max_length",
-        truncation=True,
-        max_length=128,
-        return_special_tokens_mask=True,
-    )
-    input_ids = text_encoding['input_ids']
-    attention_mask = text_encoding['attention_mask']
-    token_type_ids = text_encoding['token_type_ids']
-    input_ids = torch.tensor(input_ids, dtype=torch.int64)
-    token_type_ids = torch.tensor(token_type_ids, dtype=torch.int64)
-    attention_mask = torch.tensor(attention_mask, dtype=torch.int64)
-    image = Image.open(r'D:\AIDP\archive\images\train\apple_pie\apple_pie_0.jpg')
-    image_processor = ViltImageProcessor.from_pretrained(r'vilt/weights/mlm')
-    image = [image, image]
-    encoding_image_processor = image_processor(image, return_tensors="pt")
-    pixel_values = encoding_image_processor["pixel_values"]
-    pixel_mask = encoding_image_processor["pixel_mask"]
-    input_ids = input_ids.to('cuda:0')
-    token_type_ids = token_type_ids.to('cuda:0')
-    attention_mask = attention_mask.to('cuda:0')
-    pixel_values = pixel_values.to('cuda:0')
-    pixel_mask = pixel_mask.to('cuda:0')
-    map = MAP(vilt=ViltModel.from_pretrained(r'vilt/weights/mlm'),
-              dataset_name='mmimdb',
-              cls_num=23,
-              max_text_len=128,
-              learnt_p=True,
-              missing_type='text',
-              prompt_type='input',
-              prompt_num=5,
-              prompt_len=16,
-              device='cuda:0')
-    map = map.to('cuda:0')
-    missing_mask = torch.tensor([0, 1], dtype=torch.int64).to('cuda:0')
-    output = map(input_ids=input_ids,
-                 pixel_values=pixel_values,
-                 pixel_mask=pixel_mask,
-                 token_type_ids=token_type_ids,
-                 attention_mask=attention_mask,
-                 missing_mask=missing_mask,
-                 image_token_type_idx=1)
