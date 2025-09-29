@@ -25,6 +25,18 @@ class MMIMDbDataset(torch.utils.data.Dataset):
         # k = self.k
         text = self.text_list[index]
         image = Image.open(fr'dataset/mmimdb/image/{self.id_list[index]}.jpeg').convert("RGB")
+        if self.missing_type == "text" and self.missing_mask_list[index] == 0:
+            text = ''
+        elif self.missing_type == "image" and self.missing_mask_list[index] == 0:
+            w, h = image.size
+            ones_arr = np.ones((h, w, 3), dtype=np.uint8)  
+            image = Image.fromarray(ones_arr, mode='RGB')
+        elif self.missing_type == "both" and self.missing_mask_list[index] == 0:
+            text = ''
+        elif self.missing_type == "both" and self.missing_mask_list[index] == 1:
+            w, h = image.size
+            ones_arr = np.ones((h, w, 3), dtype=np.uint8)
+            image = Image.fromarray(ones_arr, mode='RGB')
         return {
             "image": image,
             "text": text,
