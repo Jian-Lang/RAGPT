@@ -347,11 +347,13 @@ class ViltSelfAttention(nn.Module):
     def forward(self, hidden_states, attention_mask=None, head_mask=None, output_attentions=False,
                 missing_aware_prompt=None, prompt_type='input', learnt_p=False):
         mixed_query_layer = self.query(hidden_states)
+        print("prompt_type", prompt_type)
         if prompt_type == 'input':
             key_layer = self.transpose_for_scores(self.key(hidden_states))
             value_layer = self.transpose_for_scores(self.value(hidden_states))
         elif prompt_type == 'attention':
             P = missing_aware_prompt.size(1)
+            print("missing_aware_prompt", missing_aware_prompt.shape)
             if learnt_p:
                 P = P // 2
                 prompts_k = missing_aware_prompt[:, :P]
@@ -359,21 +361,20 @@ class ViltSelfAttention(nn.Module):
             else:
                 prompts_k = missing_aware_prompt
                 prompts_v = missing_aware_prompt
+            print("key_layer_before", self.transpose_for_scores(self.key(hidden_states)).shape)
             key_layer = self.transpose_for_scores(torch.concat([prompts_k, self.key(hidden_states)], dim=1))
             value_layer = self.transpose_for_scores(
                 torch.concat([prompts_v, self.value(hidden_states)], dim=1))
         else:
             raise ValueError("prompt_type should be 'input' or 'attention'")
+        print("key_layer", key_layer.shape)
         query_layer = self.transpose_for_scores(mixed_query_layer)
         # Take the dot product between "query" and "key" to get the raw attention scores.
 
         attention_scores = torch.matmul(query_layer, key_layer.transpose(-1, -2))
         attention_scores = attention_scores / math.sqrt(self.attention_head_size)
+        print("attention_mask", attention_mask.shape)
         if attention_mask is not None:
-            attention_mask = attention_mask.expand(attention_scores.shape[0],
-                                                   attention_scores.shape[1],
-                                                   attention_scores.shape[2],
-                                                   attention_scores.shape[3])
             attention_scores = attention_scores + attention_mask
 
         # Normalize the attention scores to probabilities.

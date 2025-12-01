@@ -55,11 +55,11 @@ class ragpt(torch.nn.Module):
         self.pooler = vilt.pooler
 
         # define the MMG for completion of missing information
-        if missing_type == "Text":
+        if missing_type == "text":
             self.MMG = MMG(n = max_text_len, d = hs,dropout_rate=dropout_rate)
-        elif missing_type == "Image":
+        elif missing_type == "image":
             self.MMG = MMG(n = max_image_len, d = hs,dropout_rate=dropout_rate)
-        elif missing_type == "Both":
+        elif missing_type == "both":
             self.MMG_t = MMG(n = max_text_len, d=hs,dropout_rate=dropout_rate)
             self.MMG_i = MMG(n = max_image_len, d=hs,dropout_rate=dropout_rate)
 
@@ -83,6 +83,36 @@ class ragpt(torch.nn.Module):
             param.requires_grad = False
         for param in self.layernorm.parameters():
             param.requires_grad = False
+    
+    def get_extended_attention_mask(self, attention_mask: torch.Tensor, dtype: torch.dtype = None) -> torch.Tensor:
+        """
+        Makes broadcastable attention mask so that masked tokens are ignored.
+        
+        Arguments:
+            attention_mask (`torch.Tensor`):
+                Mask with ones indicating tokens to attend to, zeros for tokens to ignore.
+            dtype (`torch.dtype`, *optional*):
+                The dtype of the extended attention mask.
+                
+        Returns:
+            `torch.Tensor` The extended attention mask, with 0.0 for positions to attend 
+            and the dtype's smallest value for masked positions.
+        """
+        if dtype is None:
+            dtype = torch.float32
+            
+        if attention_mask.dim() == 2:
+            extended_attention_mask = attention_mask[:, None, None, :]
+        elif attention_mask.dim() == 3:
+            extended_attention_mask = attention_mask[:, None, :, :]
+        else:
+            raise ValueError(
+                f"Wrong shape for attention_mask (shape {attention_mask.shape})"
+            )
+        
+        extended_attention_mask = extended_attention_mask.to(dtype=dtype)
+        extended_attention_mask = (1.0 - extended_attention_mask) * torch.finfo(dtype).min
+        return extended_attention_mask
 
     def forward(self,
                 input_ids: torch.Tensor,
@@ -106,17 +136,17 @@ class ragpt(torch.nn.Module):
         text_emb = embedding[:, :self.max_text_len, :]
         image_emb = embedding[:, self.max_text_len:, :]
 
-        if self.missing_type == "Text":
+        if self.missing_type == "text":
             recovered_t = self.MMG(r_t_list)
             missing_mask_t = missing_mask.view(-1, 1, 1).expand(-1,self.max_text_len, self.hs)
             text_emb = text_emb * missing_mask_t + recovered_t * (1 - missing_mask_t)
-        
-        elif self.missing_type == "Image":
+
+        elif self.missing_type == "image":
             recovered_i = self.MMG(r_i_list)
             missing_mask_i = missing_mask.view(-1, 1, 1).expand(-1, 145, self.hs)
             image_emb = image_emb * missing_mask_i + recovered_i * (1 - missing_mask_i)
 
-        elif self.missing_type == "Both":
+        elif self.missing_type == "both":
             recovered_t = self.MMG_t(r_t_list)
             recovered_i = self.MMG_i(r_i_list)
             t_missing_mask = [0 if i == 0 else 1 for i in missing_mask]
@@ -125,8 +155,8 @@ class ragpt(torch.nn.Module):
             i_missing_mask = torch.tensor(i_missing_mask).to(self.device)
             missing_mask_t = t_missing_mask.view(-1, 1, 1).expand(-1,self.max_text_len, self.hs)
             missing_mask_i = i_missing_mask.view(-1, 1, 1).expand(-1, 145, self.hs)
-            text_emb = text_emb * missing_mask_t + recovered_t * (1 - missing_mask_t)
-            image_emb = image_emb * missing_mask_i + recovered_i * (1 - missing_mask_i)
+            text_emb = text_emb * missing_mask_t + recovered_t * (1-missing_mask_t)
+            image_emb = image_emb * missing_mask_i + recovered_i * (1-missing_mask_i)
         
         t_prompt,i_prompt = self.dynamic_prompt(r_i=r_i_list, r_t=r_t_list, T=text_emb, V=image_emb)
         t_prompt = torch.mean(t_prompt, dim=1)
@@ -152,13 +182,14 @@ class ragpt(torch.nn.Module):
                 output = torch.cat([label_emb,t_prompt.unsqueeze(1),i_prompt.unsqueeze(1),output], dim=1)
                 N = embedding.shape[0]
                 attention_mask = torch.cat([torch.ones(N,1+self.prompt_len*2).to(self.device), attention_mask], dim=1)
+                extended_attention_mask = self.get_extended_attention_mask(attention_mask, dtype=output.dtype)
                 layer_outputs = layer_module(output,
-                                             attention_mask=attention_mask
+                                             attention_mask=extended_attention_mask
                                             )
                 output = layer_outputs[0]
             else:
                 layer_outputs = layer_module(output, 
-                                             attention_mask=attention_mask
+                                             attention_mask=extended_attention_mask
                                              )
                 output = layer_outputs[0]
         output = self.layernorm(output)

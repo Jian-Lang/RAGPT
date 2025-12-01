@@ -21,21 +21,12 @@ class HatememesDataset(torch.utils.data.Dataset):
         self.missing_mask_list = dataframe[f'missing_mask_{int(10 * missing_rate)}'].tolist()
 
     def __getitem__(self, index):
-        # k = self.k
         text = self.text_list[index]
         image = Image.open(fr'dataset/hatememes/image/{self.id_list[index]}.png').convert("RGB")
         if self.missing_type == "text" and self.missing_mask_list[index] == 0:
             text = ''
-        elif self.missing_type == "image" and self.missing_mask_list[index] == 0:
-            w, h = image.size
-            ones_arr = np.ones((h, w, 3), dtype=np.uint8)  
-            image = Image.fromarray(ones_arr, mode='RGB')
         elif self.missing_type == "both" and self.missing_mask_list[index] == 0:
             text = ''
-        elif self.missing_type == "both" and self.missing_mask_list[index] == 1:
-            w, h = image.size
-            ones_arr = np.ones((h, w, 3), dtype=np.uint8)
-            image = Image.fromarray(ones_arr, mode='RGB')
         return {
             "image": image,
             "text": text,

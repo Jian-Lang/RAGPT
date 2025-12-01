@@ -360,8 +360,7 @@ class ViltSelfAttention(nn.Module):
                 prompts_k = missing_aware_prompt
                 prompts_v = missing_aware_prompt
             key_layer = self.transpose_for_scores(torch.concat([prompts_k, self.key(hidden_states)], dim=1))
-            value_layer = self.transpose_for_scores(
-                torch.concat([prompts_v, self.value(hidden_states)], dim=1))
+            value_layer = self.transpose_for_scores(torch.concat([prompts_v, self.value(hidden_states)], dim=1))
         else:
             raise ValueError("prompt_type should be 'input' or 'attention'")
         query_layer = self.transpose_for_scores(mixed_query_layer)
@@ -370,10 +369,6 @@ class ViltSelfAttention(nn.Module):
         attention_scores = torch.matmul(query_layer, key_layer.transpose(-1, -2))
         attention_scores = attention_scores / math.sqrt(self.attention_head_size)
         if attention_mask is not None:
-            attention_mask = attention_mask.expand(attention_scores.shape[0],
-                                                   attention_scores.shape[1],
-                                                   attention_scores.shape[2],
-                                                   attention_scores.shape[3])
             attention_scores = attention_scores + attention_mask
         # Normalize the attention scores to probabilities.
         attention_probs = nn.Softmax(dim=-1)(attention_scores)

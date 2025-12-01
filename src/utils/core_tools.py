@@ -31,7 +31,7 @@ def init_data_hatememes():
         data.to_pickle(f'dataset/hatememes/{split}.pkl')
 
 def init_data_mmimdb():
-    data_split = json.load(open('dataset/mmimdb/meta_data/split.json'))
+    data_split = json.load(open('dataset/mmimdb/split.json'))
     genres = ['Drama', 'Comedy', 'Romance', 'Thriller', 'Crime', 'Action', 'Adventure', 'Horror'
         , 'Documentary', 'Mystery', 'Sci-Fi', 'Fantasy', 'Family', 'Biography', 'War', 'History', 'Music',
         'Animation', 'Musical', 'Western', 'Sport', 'Short', 'Film-Noir'] 
@@ -54,7 +54,7 @@ def init_data_mmimdb():
         data.to_pickle(f'dataset/mmimdb/{split if split != "dev" else "valid"}.pkl')
 
 def init_data_food101():
-    class_idx = json.load(open('dataset/food101/meta_data/class_idx.json'))
+    class_idx = json.load(open('dataset/food101/class_idx.json'))
 
     for split in tqdm(['train', 'test']):
         data = pd.read_csv(f'dataset/food101/meta_data/{split}_titles.csv')
@@ -343,7 +343,7 @@ def generate_missing_table(missing_rate, missing_type, dataset_name, base_file_p
     elif missing_type == 'both':
         num_missing = int(len(df) * missing_rate)  
         num_text_missing = num_missing // 2  
-        num_visual_missing = num_missing // 2 
+        num_image_missing = num_missing // 2 
         
         missing_mask = np.full(len(df), 2, dtype=int)
 
@@ -351,8 +351,8 @@ def generate_missing_table(missing_rate, missing_type, dataset_name, base_file_p
         missing_mask[text_missing_indices] = 0  
         
         remaining_indices = list(set(range(len(df))) - set(text_missing_indices))
-        visual_missing_indices = np.random.choice(remaining_indices, num_visual_missing, replace=False)
-        missing_mask[visual_missing_indices] = 1  
+        image_missing_indices = np.random.choice(remaining_indices, num_image_missing, replace=False)
+        missing_mask[image_missing_indices] = 1  
         
     df[f"missing_mask_{int(missing_rate* 10)}"] = missing_mask
 
@@ -403,6 +403,7 @@ class Collator:
         self.tokenizer = BertTokenizer.from_pretrained('dandelin/vilt-b32-mlm', do_lower_case=True)
         self.max_text_len = max_text_len
         self.is_baseline = is_baseline
+        self.missing_type = kargs['missing_type']
 
     def __call__(self, batch):
         text = [item['text'] for item in batch]
@@ -429,6 +430,17 @@ class Collator:
         missing_mask = [item['missing_mask'] for item in batch]
 
         if self.is_baseline:
+            if self.missing_type == "image":
+                missing_mask_tensor = torch.tensor(missing_mask, dtype=torch.int64)
+                mask_indices = (missing_mask_tensor == 0).nonzero(as_tuple=True)[0]
+                if len(mask_indices) > 0:
+                    pixel_values[mask_indices] = 1.0
+            elif self.missing_type == "both":
+                missing_mask_tensor = torch.tensor(missing_mask, dtype=torch.int64)
+                image_mask_indices = (missing_mask_tensor == 1).nonzero(as_tuple=True)[0]
+                # print("Image missing indices:", image_mask_indices)
+                if len(image_mask_indices) > 0:
+                    pixel_values[image_mask_indices] = 1.0
             return {
                 "input_ids": torch.tensor(input_ids,dtype=torch.int64),
                 "pixel_values": pixel_values,
