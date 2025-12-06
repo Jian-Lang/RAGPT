@@ -353,10 +353,6 @@ class ViltSelfAttention(nn.Module):
         attention_scores = torch.matmul(query_layer, key_layer.transpose(-1, -2))
         attention_scores = attention_scores / math.sqrt(self.attention_head_size)
         if attention_mask is not None:
-            attention_mask = attention_mask.unsqueeze(1).unsqueeze(-1).expand(attention_scores.shape[0],
-                                                                              attention_scores.shape[1],
-                                                                              attention_scores.shape[2],
-                                                                              attention_scores.shape[3])
             # Apply the attention mask is (precomputed for all layers in BertModel forward() function)
             attention_scores = attention_scores + attention_mask
 
