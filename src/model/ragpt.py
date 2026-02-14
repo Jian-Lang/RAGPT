@@ -159,8 +159,8 @@ class ragpt(torch.nn.Module):
             image_emb = image_emb * missing_mask_i + recovered_i * (1-missing_mask_i)
         
         t_prompt,i_prompt = self.dynamic_prompt(r_i=r_i_list, r_t=r_t_list, T=text_emb, V=image_emb)
-        t_prompt = torch.mean(t_prompt, dim=1)
-        i_prompt = torch.mean(i_prompt, dim=1)
+        # t_prompt = torch.mean(t_prompt, dim=1)
+        # i_prompt = torch.mean(i_prompt, dim=1)
 
         if self.dataset_name == "hatememes" or self.dataset_name == "food101":
             label_emb = self.label_enhanced[r_l_list]
@@ -177,9 +177,10 @@ class ragpt(torch.nn.Module):
             label_emb = label_emb.view(-1, 1, self.hs)
 
         output = torch.cat([text_emb, image_emb], dim=1)
+        extended_attention_mask = self.get_extended_attention_mask(attention_mask, dtype=embedding.dtype)
         for i, layer_module in enumerate(self.encoder_layer):
             if i == self.prompt_pos:
-                output = torch.cat([label_emb,t_prompt.unsqueeze(1),i_prompt.unsqueeze(1),output], dim=1)
+                output = torch.cat([label_emb,t_prompt,i_prompt,output], dim=1)
                 N = embedding.shape[0]
                 attention_mask = torch.cat([torch.ones(N,1+self.prompt_len*2).to(self.device), attention_mask], dim=1)
                 extended_attention_mask = self.get_extended_attention_mask(attention_mask, dtype=output.dtype)

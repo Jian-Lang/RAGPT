@@ -40,14 +40,18 @@ class CAP(nn.Module):
     def attention(self, query, key_value):
         b, k, s, _ = key_value.shape
 
-        q = self.q_proj(query).unsqueeze(1).expand(b, k, -1, -1)  
-        k = self.k_proj(key_value)  
-        v = self.v_proj(key_value) 
+        # Reshape key_value to merge k and s dimensions: [b, k*s, dim]
+        key_value = key_value.reshape(b, k * s, -1)
+        
+        q = self.q_proj(query)  # [b, query_len, dim]
+        k = self.k_proj(key_value)  # [b, k*s, dim]
+        v = self.v_proj(key_value)  # [b, k*s, dim]
 
-        attn_scores = torch.matmul(q, k.transpose(-2, -1)) / (self.dim ** 0.5)  
+        attn_scores = torch.matmul(q, k.transpose(-2, -1)) / (self.dim ** 0.5)  # [b, query_len, k*s]
         attn_probs = F.softmax(attn_scores, dim=-1)
 
-        output = torch.matmul(attn_probs, v)  
-        output = self.pooling(output)
-        output = output.mean(dim=1)
+        output = torch.matmul(attn_probs, v)  # [b, query_len, dim]
+        output = self.pooling(output.unsqueeze(1))  # Add dim for pooling
+        output = output.squeeze(1)
+        # print(output.shape)
         return output

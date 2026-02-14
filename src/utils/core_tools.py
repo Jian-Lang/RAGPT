@@ -79,6 +79,7 @@ class MemoryBankGenerator(torch.nn.Module):
         if self.dataset != "food101":
             self.df_valid = pd.read_pickle(rf'dataset/{self.dataset}/valid.pkl')
         self.batch_size = cfg.batch_size
+        print(self.batch_size)
         # check if memory_bank folder exists
         if not os.path.exists(f'dataset/memory_bank/{self.dataset}/text'):
             os.makedirs(f'dataset/memory_bank/{self.dataset}/text')
@@ -184,15 +185,31 @@ class MCR():
             for j in range(batch.size(0)):
                 id_index = i + j
                 id = memory_bank_id[id_index] if id_index < len(memory_bank_id) else None
-                retrieved_ids = [memory_bank_id[idx] for idx in top_k_id[j].tolist() if memory_bank_id[idx] != id]
-                retrieved_labels = [memory_bank_label[idx] for idx in top_k_id[j].tolist() if memory_bank_id[idx] != id]
-                sim_score = sim_scores[j,1:]
-                if len(retrieved_ids) > self.top_k:
-                    retrieved_ids = retrieved_ids[:self.top_k]
-                    sim_score = sim_score[:self.top_k]
-                    retrieved_labels = retrieved_labels[:self.top_k]
+                
+                # Get all top_k indices and scores
+                top_indices = top_k_id[j].tolist()
+                top_scores = sim_scores[j].tolist()
+                
+                # Filter out self while keeping ids, labels, and scores aligned
+                retrieved_ids = []
+                retrieved_labels = []
+                retrieved_scores = []
+                
+                for idx, score in zip(top_indices, top_scores):
+                    if memory_bank_id[idx] != id:
+                        retrieved_ids.append(memory_bank_id[idx])
+                        retrieved_labels.append(memory_bank_label[idx])
+                        retrieved_scores.append(score)
+                
+                # Limit to top_k-1 items (excluding self)
+                max_items = self.top_k - 1
+                if len(retrieved_ids) > max_items:
+                    retrieved_ids = retrieved_ids[:max_items]
+                    retrieved_labels = retrieved_labels[:max_items]
+                    retrieved_scores = retrieved_scores[:max_items]
+                
                 r_id_list.append(retrieved_ids)
-                sims_list.append(sim_score.tolist())
+                sims_list.append(retrieved_scores)
                 r_label_list.append(retrieved_labels)
         return  r_id_list,sims_list, r_label_list
 
@@ -525,6 +542,8 @@ def print_init_msg(logger, cfg):
     logger.info("Missing Rate: " + f"{cfg.data_para.missing_rate}")
     logger.info("Missing Type: " + f"{cfg.data_para.missing_type}")
     logger.info("Prompt Length: " + f"{cfg.model_para.prompt_len}")
+    logger.info("Prompt Position: " + f"{cfg.model_para.prompt_pos}")
+    logger.info("Number of Retrieved Instances: " + f"{cfg.data_para.k}")
     logger.info("Training Starts!")
 
 def make_saving_folder_and_logger(cfg):

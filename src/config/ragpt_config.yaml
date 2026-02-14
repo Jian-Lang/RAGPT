@@ -5,8 +5,8 @@ model_para:
   model_name: "ragpt"
   backbone: "vilt"
   vilt_weights: "src/model/vilt/weights/mlm"
-  prompt_pos: 0
-  prompt_len: 1
+  prompt_pos: 1
+  prompt_len: 6
   dropout_rate: 0.2
 
 
@@ -16,7 +16,7 @@ data_para:
   missing_rate: 0.7
   max_text_len: 128
   max_image_len: 145
-  k: 3
+  k: 5
 
 
 optim_para:

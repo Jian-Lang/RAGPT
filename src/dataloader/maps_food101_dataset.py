@@ -28,7 +28,6 @@ class Food101Dataset(torch.utils.data.Dataset):
             text = ''
         elif self.missing_type == "both" and self.missing_mask_list[index] == 0:
             text = ''
-        
         return {
             "image": image,
             "text": text,
