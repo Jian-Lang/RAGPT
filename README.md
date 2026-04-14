@@ -6,7 +6,7 @@ Paper Link: https://arxiv.org/pdf/2501.01120
 
 > [!IMPORTANT]
 >
-> *We have completed the missing setting of our work and added a "News and Updates" module.*
+> *We release the **first comprehensive collection of resources on modality-missing learning**: https://github.com/Jian-Lang/awesome-modality-missing-learning.*
 
 ## News and Updates
 
